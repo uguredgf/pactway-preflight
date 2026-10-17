@@ -3,6 +3,7 @@
 .git/
 .local/
 .vercel/
+.codex-presentation-build/
 node_modules/
 contracts/
 docs/
