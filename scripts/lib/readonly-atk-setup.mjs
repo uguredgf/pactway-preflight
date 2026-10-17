@@ -53,11 +53,15 @@ export function readonlyApplicationPort(environment={}) {
       || Number(value)<1024 || Number(value)>65535)throw fail('APP_PORT_INVALID');
   return value;
 }
-export function readonlyServerEnvironment(setup,files,credentials,environment=process.env) {
+export function readonlyServerEnvironment(setup,files,credentials,environment=process.env,serverEnvironment={}) {
+  const allowed=new Set(['MG_PUBLIC_ORIGIN','MG_INVITE_CODE','MG_OPERATOR_KEY','MG_PREFLIGHT_SHARED_DEMO']);
+  if(!serverEnvironment || typeof serverEnvironment!=='object' || Array.isArray(serverEnvironment)
+      || Object.keys(serverEnvironment).some(key=>!allowed.has(key))
+      || Object.values(serverEnvironment).some(value=>typeof value!=='string'))throw fail('SERVER_ENVIRONMENT_INVALID');
   return {...osEnvironment(environment),MG_PORT:readonlyApplicationPort(environment),MG_DATA_DIR:files.data,...localPlannerEnvironment(environment),...fujiEnvironment(environment),MG_EXECUTION_MODE:'fixture',
     MG_ATK_EXECUTION:'0',MG_ATK_ISOLATED:'1',MG_ATK_NODE:process.execPath,MG_ATK_ENTRY:setup.entryPath,
     MG_ATK_UPSTREAM_ENTRY:setup.upstreamEntryPath,MG_ATK_PROFILE:setup.manifest.config.profile,
     MG_ATK_BOOTSTRAP_ENTRY:setup.bootstrapEntryPath,
     MG_ATK_MANIFEST_FILE:files.manifest,MG_ATK_CATALOG_APPROVAL_FILE:files.approval,MG_ATK_ACCOUNT_EXPECTATION_FILE:files.account,
-    OKX_API_KEY:credentials.apiKey,OKX_SECRET_KEY:credentials.secret,OKX_PASSPHRASE:credentials.passphrase};
+    OKX_API_KEY:credentials.apiKey,OKX_SECRET_KEY:credentials.secret,OKX_PASSPHRASE:credentials.passphrase,...serverEnvironment};
 }

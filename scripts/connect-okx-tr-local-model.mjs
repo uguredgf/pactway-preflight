@@ -3,4 +3,5 @@ import {LOCAL_MODEL} from './lib/local-model-setup.mjs';
 import {FUJI_PROFILE} from '../src/audit/fuji-deployment-profile.mjs';
 process.env.PACTWAY_LOCAL_MODEL=LOCAL_MODEL;
 process.env.PACTWAY_FUJI_PROFILE=FUJI_PROFILE.id;
-await import('./connect-okx-tr-readonly.mjs');
+const {runReadonlyConnector}=await import('./connect-okx-tr-readonly.mjs');
+await runReadonlyConnector();

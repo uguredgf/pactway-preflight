@@ -30,6 +30,9 @@ const PREFLIGHT_PUBLIC_ERRORS=new Set(['PREFLIGHT_POLICY_LIMIT','PREFLIGHT_POLIC
   'PREFLIGHT_STORAGE_UNCERTAIN','PREFLIGHT_EXAMPLE_NOT_FOUND','PREFLIGHT_INPUT_INVALID']);
 const port=Number(process.env.MG_PORT || 8766);
 if(!Number.isInteger(port) || port<1024 || port>65535)throw new Error('MG_PORT geçersiz');
+const sharedDemoFlag=process.env.MG_PREFLIGHT_SHARED_DEMO;
+if(sharedDemoFlag!==undefined && sharedDemoFlag!=='1')throw new Error('MG_PREFLIGHT_SHARED_DEMO yalnız 1 olabilir.');
+const preflightSharedDemo=sharedDemoFlag==='1';
 const configuredOrigin=process.env.MG_PUBLIC_ORIGIN || '';
 const operatorKey=process.env.MG_OPERATOR_KEY || '';
 if(operatorKey && (operatorKey.length<24 || operatorKey.length>256))throw new Error('MG_OPERATOR_KEY 24–256 karakter olmalı.');
@@ -55,6 +58,17 @@ const planner=plannerMode==='fixture'?new FixturePlanner():plannerMode==='openai
   :new OllamaPlanner({url:process.env.MG_OLLAMA_URL,model:process.env.MG_OLLAMA_MODEL,reserveCall:usage=>store.reserveOwnedModelCall(modelCallLimit,usage)});
 const executionMode=process.env.MG_EXECUTION_MODE || 'fixture';
 if(!['fixture','demo-prepared'].includes(executionMode))throw new Error('MG_EXECUTION_MODE geçersiz');
+if(preflightSharedDemo) {
+  const required=[
+    'MG_OLLAMA_URL','MG_OLLAMA_MODEL','MG_ATK_NODE','MG_ATK_ENTRY','MG_ATK_UPSTREAM_ENTRY','MG_ATK_BOOTSTRAP_ENTRY',
+    'MG_ATK_MANIFEST_FILE','MG_ATK_CATALOG_APPROVAL_FILE','MG_ATK_ACCOUNT_EXPECTATION_FILE',
+    'OKX_API_KEY','OKX_SECRET_KEY','OKX_PASSPHRASE'
+  ];
+  if(!publicOrigin || executionMode!=='fixture' || plannerMode!=='ollama' || process.env.MG_ATK_EXECUTION!=='0'
+      || process.env.MG_ATK_ISOLATED!=='1' || fujiProfile!==undefined
+      || required.some(name=>typeof process.env[name]!=='string' || process.env[name].length===0))
+    throw new Error('Paylaşımlı Preflight yalnız HTTPS, fixture, yerel model ve izole salt okunur ATK ile başlatılabilir.');
+}
 let demoPolicy=null;
 if(executionMode==='demo-prepared') {
   if(process.env.MG_ATK_EXECUTION!=='1' || process.env.MG_ATK_ISOLATED!=='1' || !operatorKey
@@ -96,9 +110,23 @@ const staticFiles=new Map([
   ['/motion.css',['public/motion.css','text/css; charset=utf-8']], ['/motion.js',['public/motion.js','text/javascript; charset=utf-8']]
 ]);
 for(const name of ['instrument-sans-latin-wght-normal.woff2','instrument-sans-latin-ext-wght-normal.woff2','newsreader-latin-standard-normal.woff2','newsreader-latin-ext-standard-normal.woff2'])
-  staticFiles.set('/fonts/'+name,['previews/concepts/fonts/'+name,'font/woff2']);
+  staticFiles.set('/fonts/'+name,['public/fonts/'+name,'font/woff2']);
+const sharedStaticPaths=new Set(['/','/preflight.html','/preflight.css','/preflight.mjs',...staticFiles.keys()].filter(path=>
+  path==='/' || path.startsWith('/preflight') || path.startsWith('/fonts/')));
+function sharedRouteAllowed(method,path) {
+  if(method==='GET')return sharedStaticPaths.has(path) || path==='/api/bootstrap'
+    || path==='/api/preflight/status' || path==='/api/preflight/history'
+    || /^\/api\/preflight\/policies\/[a-f0-9-]{36}$/i.test(path)
+    || /^\/api\/preflight\/checks\/[a-f0-9-]{36}(?:\/report)?$/i.test(path);
+  if(method!=='POST')return false;
+  return path==='/api/session/join' || path==='/api/session/leave' || path==='/api/preflight/policies'
+    || path==='/api/preflight/checks' || path==='/api/preflight/agent-checks'
+    || /^\/api\/preflight\/policies\/[a-f0-9-]{36}\/approve$/i.test(path)
+    || /^\/api\/preflight\/examples\/(within-limits|limit-breach|stale-evidence)$/.test(path);
+}
 const status={executionMode,plannerKind:planner.kind,extractorAvailable:!!extractor,
-  accessMode:publicOrigin?'INVITED_VISITORS':'LOCAL_VISITORS',queueMode:executionMode==='fixture'?'SINGLE_FIXTURE_EXECUTOR':'SINGLE_DEMO_EXECUTOR',
+  accessMode:preflightSharedDemo?'PREFLIGHT_SHARED_DEMO':publicOrigin?'INVITED_VISITORS':'LOCAL_VISITORS',
+  queueMode:executionMode==='fixture'?'SINGLE_FIXTURE_EXECUTOR':'SINGLE_DEMO_EXECUTOR',
   atk:{state:'NOT_CONNECTED',writeEnabled:false,orderSubmissionEnabled:false,transferEnabled:false},
   avalanche:{state:'NOT_DEPLOYED',chainId:43113},tests:'NOT_RUN'};
 let atk=null,demoExecutor=null,readOnlyMarket=null,atkConnection=Promise.resolve(),fujiConnection=Promise.resolve();
@@ -149,6 +177,11 @@ function integrationStatus() {
   }
   return {...status,safety:store.globalSafetyStatus()};
 }
+function sessionBootstrap(session) {
+  if(preflightSharedDemo)return {csrf:session.csrf,expiresAtMs:session.expiresAtMs};
+  return {csrf:session.csrf,expiresAtMs:session.expiresAtMs,status:integrationStatus(),
+    tasks:store.list(session.ownerId).map(state=>({id:state.id,phase:state.ledger.phase})),drafts:store.listPolicyWorkflows(session.ownerId)};
+}
 function reply(response,statusCode,data) {
   response.writeHead(statusCode,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-MG-Server-Time':String(Date.now())});
   response.end(JSON.stringify(data));
@@ -183,6 +216,7 @@ const server=createServer(async(request,response)=>{
     if(shuttingDown)return reply(response,503,{error:'Sunucu kapanıyor. Sonuç kaydını yeni bağlantıda kontrol et.'});
     if(!checkOrigin(request))return reply(response,403,{error:'İstek yapılandırılan site origin’iyle eşleşmiyor.'});
     const path=new URL(request.url,publicOrigin || 'http://'+request.headers.host).pathname;
+    if(preflightSharedDemo && !sharedRouteAllowed(request.method,path))return reply(response,404,{error:'Yol bulunamadı.'});
     if(request.method==='GET' && staticFiles.has(path)) {
       const [file,type]=staticFiles.get(path),content=await readFile(join(root,file));
       response.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'});return response.end(content);
@@ -256,16 +290,14 @@ const server=createServer(async(request,response)=>{
       limits.allow('joins',15);const input=await body(request);
       // An active session cannot be silently replaced, orphaning its held intent.
       session=access.read(request);if(!session)session=access.create(response,input.inviteCode);
-      return reply(response,200,{csrf:session.csrf,expiresAtMs:session.expiresAtMs,status:integrationStatus(),
-        tasks:store.list(session.ownerId).map(state=>({id:state.id,phase:state.ledger.phase})),drafts:store.listPolicyWorkflows(session.ownerId)});
+      return reply(response,200,sessionBootstrap(session));
     }
     if(request.method==='GET' && path==='/api/bootstrap' && !session && !publicOrigin)session=access.create(response);
     if(!session)return reply(response,401,{error:'Davetli oturumu gerekiyor.',code:'SESSION_REQUIRED',inviteRequired:Boolean(publicOrigin)});
     const stopping=request.method==='POST' && /^\/api\/tasks\/[a-f0-9-]{36}\/stop$/.test(path);
     if(stopping)limits.allow('stop:'+session.ownerId,120);
     else limits.allow('read:'+session.ownerId,180);
-    if(request.method==='GET' && path==='/api/bootstrap')return reply(response,200,{csrf:session.csrf,expiresAtMs:session.expiresAtMs,status:integrationStatus(),
-      tasks:store.list(session.ownerId).map(state=>({id:state.id,phase:state.ledger.phase})),drafts:store.listPolicyWorkflows(session.ownerId)});
+    if(request.method==='GET' && path==='/api/bootstrap')return reply(response,200,sessionBootstrap(session));
     if(request.method==='GET' && path==='/api/status')return reply(response,200,integrationStatus());
     if(request.method==='GET' && path==='/api/preflight/status')return reply(response,200,preflightStatus());
     if(request.method==='GET' && path==='/api/preflight/history')return reply(response,200,preflightService.history(session.ownerId));

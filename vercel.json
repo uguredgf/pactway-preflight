@@ -5,6 +5,19 @@
   "outputDirectory": "public-demo-dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://reports-alive-session-distributed.trycloudflare.com/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/examples",
+      "destination": "/index"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

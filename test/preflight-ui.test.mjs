@@ -16,7 +16,22 @@ test('preflight is a single operational AVAX-USDT tool, not a broad trading term
   assert.match(html,/Limit fiyatı <span id="candidate-price-help">USDT \/ AVAX/);
   assert.match(html,/Miktar <span id="candidate-size-help">AVAX/);
   assert.doesNotMatch(html,/>\s*(?:Emir gönder|Emri iptal et|Portföy|Bütçe kuyruğu)\s*</i);
-  assert.doesNotMatch(html,/type="password"|API anahtarı.+<input|cüzdan bağla|Remix/i);
+  assert.equal((html.match(/type="password"/g)??[]).length,1);
+  assert.match(html,/id="invite-code"[^>]*type="password"[^>]*minlength="24"[^>]*maxlength="256"[^>]*autocomplete="off"/);
+  assert.doesNotMatch(html,/API anahtarı.+<input|cüzdan bağla|Remix/i);
+});
+
+test('live demo explains invite-only access and limits visitor input',()=>{
+  assert.match(html,/id="live-access-notice" role="status" hidden><strong>Davetli canlı demo<\/strong><span>Emir yetkisi kapalı/);
+  assert.match(html,/Politika sınırlarını ve tek bir AVAX-USDT limit alım önerisini gir/);
+  assert.match(html,/Bu ekran cüzdan, API anahtarı veya borsa parolası istemez/);
+  assert.match(html,/Davet kodu <span id="invite-code-help">Sunum ekibinin paylaştığı kod/);
+  assert.match(app,/\$\('#live-access-notice'\)\.hidden=!required/);
+  assert.match(app,/const validInviteCode=value=>typeof value==='string'&&value\.length>=24&&value\.length<=256/);
+  assert.match(app,/body=inviteRequired\?\{inviteCode\}:\{\}/);
+  assert.match(app,/\$\('#invite-code'\)\.value='';try/);
+  assert.doesNotMatch(app,/sessionStorage\.(?:setItem|getItem)\([^\n]*invite|URLSearchParams|location\.(?:search|hash)/i);
+  assert.match(css,/\.live-access-notice\{display:flex/);
 });
 
 test('policy review is explicit, immutable and distinguishes validity from approval time',()=>{

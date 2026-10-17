@@ -151,12 +151,35 @@ test('foreign-session pending bodies are discarded and cannot be posted into a f
   assert.equal(h.calls.some(call=>call.path.includes('/examples/')),false);
 });
 
-test('a 401 clears private policy UI and pending bodies before a fresh session can open',async()=>{
+test('an invite-only 401 clears private state and opens only code-gated join',async()=>{
   const h=await startPreflightController({nowMs:now,respond:baseResponder({policy:approved,onRequest:request=>
-    request.path==='/api/preflight/checks'&&request.method==='POST'?response({error:'SESSION_REQUIRED',inviteRequired:false},{status:401}):undefined})});
+    request.path==='/api/preflight/checks'&&request.method==='POST'?response({error:'SESSION_REQUIRED',inviteRequired:true},{status:401}):undefined})});
   h.fields.candidate.get('price').value='24.8';h.fields.candidate.get('size').value='4';await h.fire('candidate-form','submit');
   assert.equal(h.get('access').hidden,false);assert.equal(h.get('workspace').hidden,true);assert.equal(h.get('policy-review').hidden,true);
+  assert.equal(h.get('invite-controls').hidden,false);assert.equal(h.get('join').disabled,true);
+  assert.equal(h.get('live-access-notice').hidden,false);assert.match(h.get('access-error').textContent,/davet kodunu gir/);
   assert.equal(h.storage.has('pactway-preflight-pending-v1'),false);
+});
+
+test('invite gate validates, clears and retries the code without persisting it',async()=>{
+  const wrong='wrong-invite-code-123456789',correct='correct-invite-code-1234567';let joined=false;
+  const h=await startPreflightController({respond:request=>{
+    if(request.path==='/api/bootstrap')return joined?response(boot('csrf-one')):response({error:'SESSION_REQUIRED',inviteRequired:true},{status:401});
+    if(request.path==='/api/session/join'){
+      const input=JSON.parse(request.body);if(input.inviteCode!==correct)return response({error:'Davet kodu geçersiz.'},{status:403});joined=true;return response(boot('csrf-one'));
+    }
+    if(request.path==='/api/preflight/status')return response(status);
+    if(request.path==='/api/preflight/history')return response({policies:[],checks:[]});
+  }});
+  assert.equal(h.get('invite-controls').hidden,false);assert.equal(h.get('join').disabled,true);assert.equal(h.document.activeElement,h.get('invite-code'));
+  h.get('invite-code').value='short';await h.fire('invite-code','input');assert.equal(h.get('join').disabled,true);
+  assert.equal(h.calls.filter(call=>call.path==='/api/session/join').length,0);
+  h.get('invite-code').value=wrong;await h.fire('invite-code','input');assert.equal(h.get('join').disabled,false);await h.fire('join');
+  assert.equal(h.get('invite-code').value,'');assert.match(h.get('access-error').textContent,/geçersiz/);assert.equal(h.get('access').hidden,false);
+  h.get('invite-code').value=correct;await h.fire('invite-code','input');await h.fire('join');
+  const joins=h.calls.filter(call=>call.path==='/api/session/join');assert.equal(joins.length,2);assert.deepEqual(JSON.parse(joins[1].body),{inviteCode:correct});
+  assert.equal(h.get('invite-code').value,'');assert.equal(h.get('access').hidden,true);assert.equal(h.get('workspace').hidden,false);assert.equal(h.get('live-access-notice').hidden,false);
+  assert.equal([...h.storage.values()].some(value=>String(value).includes(wrong)||String(value).includes(correct)),false);
 });
 
 test('lost policy creation stays locked until a delayed history reconciliation permits explicit abandonment',async()=>{

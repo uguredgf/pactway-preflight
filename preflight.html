@@ -14,16 +14,23 @@
   </header>
 
   <main>
+    <p class="live-access-notice" id="live-access-notice" role="status" hidden><strong>Davetli canlı demo</strong><span>Emir yetkisi kapalı</span></p>
+
     <section class="access" id="access" hidden aria-labelledby="access-title">
-      <p class="eyebrow">YEREL ÇALIŞMA ALANI</p>
+      <p class="eyebrow" id="access-eyebrow">CANLI ÇALIŞMA ALANI</p>
       <h1 class="letter-motion" id="access-title" aria-label="İşlem öncesi kontrol"><span class="motion-word" aria-hidden="true"><span>İ</span><span>ş</span><span>l</span><span>e</span><span>m</span></span> <span class="motion-word" aria-hidden="true"><span>ö</span><span>n</span><span>c</span><span>e</span><span>s</span><span>i</span></span> <span class="motion-word" aria-hidden="true"><span>k</span><span>o</span><span>n</span><span>t</span><span>r</span><span>o</span><span>l</span></span></h1>
-      <p>Tek bir AVAX-USDT limit alımını onaylı sınırlar ve salt-okunur piyasa verisiyle kontrol et. Bu araç emir göndermez ve gizli bilgi istemez.</p>
+      <p>Politika sınırlarını ve tek bir AVAX-USDT limit alım önerisini gir. Bu ekran cüzdan, API anahtarı veya borsa parolası istemez.</p>
+      <div class="invite-controls" id="invite-controls" hidden>
+        <label for="invite-code">Davet kodu <span id="invite-code-help">Sunum ekibinin paylaştığı kod</span></label>
+        <input id="invite-code" name="inviteCode" type="password" minlength="24" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="invite-code-help invite-code-error">
+        <p class="field-error" id="invite-code-error" role="alert" hidden></p>
+      </div>
       <button class="primary" type="button" id="join">Çalışma alanını aç</button>
       <p class="error" id="access-error" role="alert"></p>
     </section>
 
     <section class="startup-error" id="boot-error" role="alert" hidden aria-labelledby="boot-error-title">
-      <div><strong id="boot-error-title">Çalışma alanı açılamadı</strong><p>Yerel hizmete ulaşılamadı. Bağlantıyı kontrol edip yeniden dene.</p></div>
+      <div><strong id="boot-error-title">Çalışma alanı açılamadı</strong><p>Canlı demo hizmetine ulaşılamadı. Bağlantıyı kontrol edip yeniden dene.</p></div>
       <button class="button" id="retry-startup" type="button">Yeniden dene</button>
     </section>
 

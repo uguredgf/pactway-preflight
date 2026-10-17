@@ -4,7 +4,19 @@ import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {readFileSync} from 'node:fs';
 import {buildPublicDemo,generatePublicReplayFixtures} from '../scripts/build-public-demo.mjs';
+
+test('Vercel sends only a temporary root redirect to the current shared origin and preserves clean replay fallback',()=>{
+  const config=JSON.parse(readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
+  assert.equal(config.cleanUrls,true);
+  assert.deepEqual(config.redirects,[{source:'/',destination:'https://reports-alive-session-distributed.trycloudflare.com/',permanent:false}]);
+  assert.equal(config.redirects[0].permanent,false);
+  assert.match(config.redirects[0].destination,/^https:\/\/reports-alive-session-distributed\.trycloudflare\.com\/$/);
+  assert.doesNotMatch(config.redirects[0].destination,/invite|secret|operator|api/i);
+  assert.deepEqual(config.rewrites,[{source:'/examples',destination:'/index'}]);
+  assert.doesNotMatch(JSON.stringify(config),/destination":\s*"\/api\//);
+});
 
 test('public build contains only the current replay surface and deterministic examples',async()=>{
   const output=await mkdtemp(join(tmpdir(),'pactway-public-demo-'));
@@ -16,6 +28,9 @@ test('public build contains only the current replay surface and deterministic ex
     const html=await readFile(join(output,'index.html'),'utf8');
     assert.match(html,/Pactway Preflight · İşlem öncesi kontrol/);
     assert.match(html,/src="\/public-demo\.mjs"/);assert.doesNotMatch(html,/src="\/preflight\.mjs"/);
+    assert.match(html,/id="live-access-notice"[^>]*hidden/);
+    const publicController=await readFile(join(output,'public-demo.mjs'),'utf8');
+    assert.doesNotMatch(publicController,/live-access-notice|live-access-state/);
     const examples=await import(pathToFileURL(join(output,'examples.mjs')).href+'?test='+Date.now());
     assert.deepEqual(Object.keys(examples.PUBLIC_REPLAY_EXAMPLES),['within-limits','limit-breach','stale-evidence']);
     assert.deepEqual(Object.values(examples.PUBLIC_REPLAY_EXAMPLES).map(report=>report.verdict),['ALLOW','BLOCK','INSUFFICIENT_DATA']);

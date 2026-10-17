@@ -1,6 +1,6 @@
 import {hiddenInput} from './okx-tr-demo-probe.mjs';
-export function requirePrivateTerminal() {
-  if(process.argv.length!==2 || !process.stdin.isTTY || !process.stdout.isTTY)throw new Error('INTERACTIVE_TERMINAL_REQUIRED');
+export function requirePrivateTerminal({allowArguments=false}={}) {
+  if((!allowArguments && process.argv.length!==2) || !process.stdin.isTTY || !process.stdout.isTTY)throw new Error('INTERACTIVE_TERMINAL_REQUIRED');
   if(process.execArgv.length || ['NODE_OPTIONS','NODE_DEBUG','NODE_DEBUG_NATIVE','SSLKEYLOGFILE','NODE_TLS_REJECT_UNAUTHORIZED'].some(key=>process.env[key]))throw new Error('UNSAFE_RUNTIME_OPTIONS');
 }
 export function hidden(label) {

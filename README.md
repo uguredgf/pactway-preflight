@@ -15,7 +15,7 @@ AI işlem ajanlarının tek bir emir önerisini, emir borsaya gönderilmeden ön
 | Ajan ne yapamaz? | Araç seçemez, argüman kuramaz, politika değiştiremez, fiyat/miktar artıramaz veya emir gönderemez. |
 | Son sözü kim söyler? | Model değil; kesin ondalıklarla çalışan deterministik kontrol katmanı. |
 | Çıktı | `ALLOW`, `BLOCK` veya `INSUFFICIENT_DATA` ve taşınabilir JSON raporu. |
-| Çalışma biçimi | Canlı operatör demosu yereldir; public web sürümü üç sentetik `REPLAY` raporu sunan statik Preflight demosudur. |
+| Çalışma biçimi | Stable Vercel root, operatörün PC'sindeki davetli tam canlı uygulamaya giriş/redirect noktasıdır; backend ve model PC'de kalır. |
 | Ücret | Yerel model için API ücreti yoktur; hesaplama kullanıcının kendi donanımında yapılır. |
 
 ## Problem
@@ -97,20 +97,20 @@ Model eyleminden sonra piyasa ve enstrüman kanıtı yeniden okunur. Nihai kontr
 
 ![Uygun aday bulunamadığında WAIT ve BLOCK raporu](docs/assets/preflight-agent-wait.png)
 
-## Public demo ve canlı operatör demosu
+## Davetli canlı demo ve operatör yolu
 
-| Public web önizlemesi | Canlı operatör demosu |
+| Stable Vercel giriş noktası | Bilgisayarda çalışan canlı uygulama |
 | --- | --- |
-| Statik `index.html` ve aynı-origin görsel varlıklar | Yerel `preflight.html` + Node.js backend |
-| Aynı governor kurallarıyla üretilmiş üç sabit sentetik `REPLAY` raporu | Politika, taze kanıt, yerel model ve canlı rapor akışı |
-| Backend/API yok | Loopback API ve yerel oturum var |
-| OKX, Ollama ve kişisel oturum yok | Özel terminalde salt-okunur OKX ve yerel Ollama |
+| `https://pactway-preflight-demo.vercel.app/` sabit bağlantısı güncel PC oturumuna yönlenir | Geçici HTTPS tüneli arkasında yerel `preflight.html` + Node.js backend |
+| Vercel yalnız giriş/redirect katmanıdır; backend Vercel'de host edilmez | Politika, taze kanıt, yerel model ve canlı rapor akışı |
+| Davet kodu yalnızca jüriye özel kanaldan verilir; repoya veya URL'ye konmaz | Loopback API, yerel oturum ve ortak operatör makinesi |
+| Public web katmanı OKX/Ollama credential'ı taşımaz | Özel terminalde salt-okunur OKX ve yerel Ollama |
 | Cüzdan, imza ve Fuji yayını yok | Varsayılan çıktı yine `LOCAL_ONLY` |
 | Emir gönderemez | Emir gönderemez |
 
-Public demo canlı backend vaat etmez ve hiçbir credential yüklenmez. Canlı yol yalnız operatörün kendi makinesinde, özel terminal girdileriyle açılır. Son kullanıcıdan Remix, cüzdan veya borsa hesabı bağlaması istenmez.
+Bu, Vercel üzerinde çalışan bir SaaS veya sürekli açık public backend değildir. Stable root, operatörün PC'sinde başlatılan davetli tam uygulamaya giriş noktasıdır; bilgisayar, internet, Ollama, Node başlatıcısı ve `cloudflared` terminal süreci açık kalmalıdır. Davet kodu yalnız özel olarak paylaşılır; GitHub'a, Vercel ayarlarına, repoya veya URL'ye yazılmaz. Son kullanıcıdan Remix, cüzdan veya borsa hesabı bağlaması istenmez.
 
-**Public demo:** [pactway-preflight-demo.vercel.app](https://pactway-preflight-demo.vercel.app). Bu adreste yalnız aynı governor kurallarıyla önceden üretilmiş üç sentetik `REPLAY` raporu incelenebilir; canlı kontrol API'si yoktur ve `/api/*` istekleri `404` döner.
+**Stable giriş:** [pactway-preflight-demo.vercel.app](https://pactway-preflight-demo.vercel.app/). Canlı oturumun geçici HTTPS origin'i başlatıcı terminalinde gösterilir; stable root bu güncel origin'e yönlendirilir. Bu nedenle başlatıcı veya bilgisayar yeniden başlarsa origin ve davet kodu değişebilir ve Vercel redirect hedefinin yeni origin'e güncellenmesi gerekir. Bu hackathon paylaşımı 24/7 çalışma veya production SLA taahhüt etmez.
 
 **Kaynak kodu:** [github.com/uguredgf/pactway-preflight](https://github.com/uguredgf/pactway-preflight)
 
@@ -155,6 +155,18 @@ node scripts/connect-preflight-agent.mjs
 
 Başlatıcı demo/salt-okuma bilgilerini terminalde ister ve `127.0.0.1:18783` üzerinde çalışır. Credential değerlerini sohbete, tarayıcı formuna, `.env` dosyasına, rapora veya repoya yazmayın. Kaynak değişiklikleri çalışan Node sürecine hot reload olmaz.
 
+### Bilgisayardan davetli canlı paylaşım
+
+Tam akışı uzaktan göstermek için ayrı bir oturum başlatıcısı vardır:
+
+```powershell
+node scripts/connect-preflight-shared.mjs
+```
+
+Bu yol, yerel Ollama ve resmi `cloudflared` kurulumu gerektirir. UID ve salt-okuma demo bilgileri yalnız operatörün özel terminaline girilir. Başlatıcı ayrı veritabanı ve loopback portu kullanır, geçici HTTPS adresi açar ve terminalde bir davet kodu gösterir. Ziyaretçi yalnız bu kodla oturum açar; kendi politika sınırlarını ve adayını girer. Borsa anahtarı veya cüzdan istemez. Mevcut `18783` oturumu ve kayıtları paylaşılmaz.
+
+Bu, operatörün piyasa bağlantısını kullanan kontrollü hackathon demosudur. Her ziyaretçinin kayıtları ayrıdır fakat borsa bağlantısı ve GPU ortaktır. Kontroller tek tek çalışır. Bilgisayar, internet, Ollama, başlatıcı veya tünel kapanırsa canlı bağlantı çalışmaz. Yeniden başlatmada HTTPS adresi ve davet kodu değişebilir; stable Vercel root'un redirect hedefi de güncellenmelidir. Bu akış sürekli açık hizmet veya production SLA değildir.
+
 ## Doğrulama
 
 ```powershell
@@ -185,7 +197,7 @@ graph TD
 
 - Üretime hazır bir trading sistemi değildir.
 - Borsa yazma, iptal ve transfer yolu Preflight akışında yoktur.
-- Sunucu yalnız loopback üzerinde açılır; public backend sunulmaz.
+- Sunucu yalnız loopback üzerinde dinler. İsteğe bağlı davetli paylaşım, ayrı oturumu HTTPS tüneli üzerinden açar; eski yönetim ve işlem uçları bu modda kapalıdır.
 - CSRF, oturum bağı, UUID idempotency ve kayıp yanıt kurtarma kontrolleri vardır.
 - Eski/eksik/uyumsuz kanıt `ALLOW` üretmez.
 - Belirsiz istekte yeni kontrol başlatmak yerine aynı istek sonucu uzlaştırılır.

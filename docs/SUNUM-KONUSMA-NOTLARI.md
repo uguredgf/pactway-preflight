@@ -25,13 +25,13 @@ Pactway modelin hareket alanını sınırlar, neyin değiştiğini raporlar ve s
 
 ## Demo sırası
 
-1. `http://127.0.0.1:18783/` adresini aç.
-2. 25 USDT azami bedel, 25 USDT/AVAX azami fiyat ve 600 saniyelik politikayı onayla.
-3. Sırasıyla `25 × 0.4`, `26.001 × 0.4` ve `25 × 0.00000001` adaylarını çalıştır.
-4. Model eylemi ile bağımsız sonucu ayrı göster.
-5. JSON raporunu indirip ilk ve son aday ayrımını göster.
+1. Özel terminalde `node scripts/connect-preflight-shared.mjs` başlat; bilgisayar, internet, Ollama ve terminal açık kalsın.
+2. Jüriye [stable Vercel root](https://pactway-preflight-demo.vercel.app/) bağlantısını, davet kodunu ise ayrı ve özel kanaldan ver.
+3. 25 USDT azami bedel, 25 USDT/AVAX azami fiyat ve 600 saniyelik politikayı onayla.
+4. Sırasıyla `25 × 0.4`, `26.001 × 0.4` ve `25 × 0.00000001` adaylarını çalıştır.
+5. Model eylemi ile bağımsız sonucu ayrı göster; JSON raporunu indirip ilk ve son aday ayrımını göster.
 
-Public statik replay: <https://pactway-preflight-demo.vercel.app>. Bu sayfa üç sabit örnek gösterir. Canlı kişisel operatör akışı yalnız localhost 18783 üzerinde çalışır.
+Stable Vercel root, güncel PC-hosted full live app'e yönlendirme giriş noktasıdır; Vercel backend'i çalıştırmaz. Başlatıcı veya bilgisayar yeniden başlarsa geçici HTTPS adresi ve davet kodu değişebilir; redirect hedefi yeni adrese güncellenmeden bağlantı çalışmaz. Bu paylaşım 24/7 veya production SLA değildir.
 
 ## Kısa jüri Q&A
 
@@ -43,6 +43,9 @@ Hayır. Emir gönderme, iptal ve transfer API'si yoktur. Ürün tek adayın işl
 
 **OKX bağlantısı ne yapıyor?**  
 UID eşleşmiş demo salt okunur oturumdan ticker ve enstrüman kurallarını alıyor. Kullanıcının tarayıcıya anahtar girmesi gerekmez.
+
+**Canlı demo nerede çalışıyor?**
+Stable Vercel root yalnızca güncel PC-hosted full app'e giriş/redirect noktasıdır. Node backend, yerel Ollama ve salt-okunur OKX bağlantısı operatörün bilgisayarında kalır; davet kodu özel kanaldan verilir.
 
 **ALLOW ne anlama geliyor?**  
 Yalnız raporda listelenen kapsam kontrollerinin geçtiğini söyler. Yatırım tavsiyesi, bakiye yeterliliği, emir kabulü veya gerçekleşme garantisi değildir.
@@ -65,7 +68,8 @@ Yalnız AVAX-USDT, spot cash, limit alım. Ek enstrümanlar, başka borsalar, im
 
 ## Sunum öncesi kontrol
 
-- Özel terminalde 18783 oturumunun açık ve `salt okunur` durumda olduğunu doğrula.
+- Özel terminalde paylaşımlı launcher'ın varsayılan `18787` oturumunun açık ve `salt okunur` durumda olduğunu doğrula.
 - Yerel Ollama modelinin hazır olduğunu doğrula.
-- Public replay bağlantısını statik üç örnek olarak tanıt; canlı OKX/model akışı izlenimi verme.
+- Stable Vercel root'u PC-hosted davetli canlı uygulamaya yönlenen giriş olarak tanıt; davet kodunu özel kanaldan ver.
+- Bilgisayar, internet, Ollama, Node başlatıcısı ve `cloudflared` terminal süreci açık kalsın; yeniden başlatmada redirect hedefini güncelle.
 - Her sonuçta `emir yetkisi kapalı` ifadesini görünür tut.
