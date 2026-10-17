@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><title>Pactway · Görev</title>
+  <link rel="stylesheet" href="/app.css"><link rel="stylesheet" href="/motion.css">
+  <script src="/motion.js" defer></script><script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">İçeriğe geç</a>
+  <header class="topbar"><a class="brand" href="/" aria-label="Pactway ana sayfa"><span class="shield" aria-hidden="true">P</span>Pactway</a><span class="mode" id="mode">Mod doğrulanıyor</span><span class="connection" id="connection">Bağlantı bekleniyor</span><button class="button" id="leave-session" hidden>Oturumu kapat</button></header>
+  <main id="main">
+    <div class="notice" id="notice" role="status">Hesap ve yürütme modu henüz doğrulanmadı. Yeni işlem kapalı.</div>
+    <section class="notice error" id="action-error" role="alert" hidden><strong>İstek tamamlanamadı.</strong><p id="action-error-copy"></p><button class="button" id="dismiss-error">Mesajı kapat</button></section>
+    <noscript><p class="notice error">Bu uygulama JavaScript ve sunucu oturumu gerektirir. Bu ekran işlem durumu göstermez.</p></noscript>
+    <section class="visitor-access" id="visitor-access" hidden><p class="eyebrow">GÜVENLİ DENEME</p><h2>Demo oturumunu aç</h2><p id="visitor-description">Cüzdan veya API anahtarı gerekmez. Bu adım yalnız bu tarayıcıya ait bir demo çalışma alanı açar.</p><ul class="access-scope" aria-label="Demo kapsamı"><li>Yürütme: simülasyon</li><li>OKX anahtarı: gerekmez</li><li>Cüzdan: gerekmez</li></ul><form id="join-form"><label>Davet kodu<input id="invite-code" name="inviteCode" type="password" autocomplete="off" minlength="24" maxlength="256" required></label><button class="primary" id="join-button">Demo oturumunu aç →</button><p id="join-error" class="error" role="alert"></p></form></section>
+    <nav class="saved-work" id="saved-work" aria-label="Bu oturumdaki kayıtlar" hidden>
+      <label>Görevler<select id="saved-tasks"><option value="">Görev seç</option></select></label>
+      <label>Taslaklar<select id="saved-drafts"><option value="">Taslak seç</option></select></label>
+      <button class="button" id="refresh-work">Kayıtları yenile</button>
+    </nav>
+    <div class="creation-layout">
+    <section class="intro">
+      <div class="hero-copy"><p class="eyebrow">KONTROL SENDE</p><h1>Öneri asistandan.<br><em>Sınırlar senden.</em></h1><p>Alım sınırlarını belirle, önerinin nasıl değerlendirildiğini takip et.</p><a class="hero-link" href="#setup">Görevini hazırla <span aria-hidden="true">↘</span></a></div>
+    </section>
+    <section class="setup" id="setup" aria-labelledby="setup-title" hidden><div class="setup-heading"><p class="eyebrow">YENİ GÖREV / AVAX–USDT</p><h2 id="setup-title">Alım sınırlarını belirle</h2><p>Ücret dahil bütçe · tek limit emir denemesi.</p></div>
+      <section class="market-context" id="market-context" aria-labelledby="market-title" hidden>
+        <div class="market-heading"><div><p class="eyebrow">BİLGİ AMAÇLI · SALT OKUNUR</p><h3 id="market-title">OKX TR demo piyasa gözlemi</h3></div><button class="button" type="button" id="market-refresh">Piyasa verisini getir</button></div>
+        <p class="market-status" id="market-status" role="status">İstek üzerine tek piyasa gözlemi alınır. Görev yürütmesi simülasyon olarak kalır.</p>
+        <dl class="market-values" id="market-values" hidden><div><dt>Alış</dt><dd id="market-bid">—</dd></div><div><dt>Satış</dt><dd id="market-ask">—</dd></div><div><dt>Son</dt><dd id="market-last">—</dd></div><div><dt>Spread</dt><dd id="market-spread">—</dd></div></dl>
+        <p class="market-evidence" id="market-evidence" hidden></p>
+        <p class="meta">Bu gözlem görev fiyatını, bütçeyi veya simülasyon sonucunu otomatik değiştirmez.</p>
+      </section>
+      <div class="mandate-form"><div class="input-modes" role="group" aria-label="Girdi biçimi"><button class="button" type="button" id="numeric-mode" aria-pressed="true">Alanlarla doldur</button><button class="button" type="button" id="text-mode" aria-pressed="false" aria-describedby="text-availability">Metinle tanımla</button></div>
+        <p class="meta" id="text-availability">Metin çıkarımı kontrol ediliyor.</p>
+        <form id="policy-form"><div class="field-grid">
+          <label>Görev bütçesi <span>USDT · ücret dahil</span><input name="budget" inputmode="decimal" type="number" min="0.01" step="0.01" required></label>
+          <label>Tek emir üst sınırı <span>USDT · alım bedeli</span><input name="singleOrderNotionalMax" inputmode="decimal" type="number" min="0.01" step="0.01" required></label>
+          <label>Birim fiyat üst sınırı <span>USDT / AVAX</span><input name="maxPrice" inputmode="decimal" type="number" min="0.01" step="0.01" required></label>
+          <label>Tahmini AVAX payı <span>% · emir tam dolarsa</span><input name="maxSharePercent" inputmode="decimal" type="number" min="0.01" max="100" step="0.01" required></label>
+          <label>Görev süresi <span>Saniye · 600 saniye = 10 dakika</span><input name="durationSeconds" inputmode="numeric" type="number" min="1" max="86400" step="1" required></label>
+        </div><button class="primary" id="draft-button" disabled>Sınırları gözden geçir →</button><p class="form-footnote">Önce özeti inceleyip onaylayacaksın. Süre, taslağı oluşturduğunda başlar; emir kısmen gerçekleşebilir veya hiç gönderilmeyebilir.</p></form>
+        <form id="text-form" hidden><label for="task-text">Görevi yaz</label><textarea id="task-text" maxlength="2000" required aria-describedby="text-help" placeholder="AVAX-USDT spot limit alım; bütçe 100 USDT; tek emir 25 USDT; birim fiyat 25 USDT/AVAX; AVAX payı %10; süre 10 dakika"></textarea><p class="meta" id="text-help">Dar biçim örneği yukarıdaki gölgeli metindir. Eksik birim veya koşul tahmin edilmez. API anahtarı ve kişisel bilgi girme.</p><button class="primary" id="text-draft-button" disabled>1/2 · Metni incelemeye aç →</button></form>
+      </div>
+      <details class="account-details"><summary>Hesap ve çalışma kapsamı</summary><p class="meta" id="account-note">Hesap durumu bekleniyor.</p></details>
+    </section>
+      <figure class="opening-graphic" id="opening-graphic" aria-labelledby="graphic-title" aria-describedby="graphic-disclaimer">
+        <div class="graphic-topline"><span id="graphic-title">PACTWAY / KARARIN İZİ</span><span>ŞEMATİK ANLATIM</span></div>
+        <div class="graphic-scene" id="opening-scene">
+          <svg viewBox="0 0 640 340" fill="none" aria-hidden="true" focusable="false">
+            <g class="graphic-grid"><path d="M0 72H640M0 170H640M0 268H640M77 24V300M190 24V300M320 24V300M450 24V300M580 24V300"/></g>
+            <path class="route-track" d="M142 170H216M379 170H460"/>
+            <path class="route-light" d="M142 170H216"/><path class="route-light red" d="M379 170H460"/>
+            <g class="proposal-zone" data-graphic-zone="proposal">
+              <rect class="graphic-hitbox" x="30" y="96" width="125" height="150"/>
+              <rect class="proposal-piece" x="47" y="116" width="90" height="15"/><rect class="proposal-piece" x="47" y="148" width="66" height="15"/>
+              <rect class="proposal-piece" x="47" y="180" width="80" height="15"/><rect class="proposal-piece" x="47" y="212" width="47" height="15"/>
+            </g>
+            <g class="guard-zone" data-graphic-zone="guard">
+              <rect class="graphic-hitbox" x="204" y="48" width="204" height="229"/>
+              <g class="guard-plane"><path d="M260 57H365L397 82V234L365 258H260L231 234V82Z"/><path d="M270 72H354L379 92V226L354 247H270L248 226V92Z"/></g>
+              <g class="guard-plane"><rect x="239" y="89" width="117" height="163"/></g>
+              <rect class="guard-front" x="216" y="103" width="117" height="163"/>
+              <path class="guard-bracket" d="M228 134V115H247M302 115H321V134M321 235V254H302M247 254H228V235"/>
+              <text class="guard-word" x="275" y="178" text-anchor="middle">SINIR</text><text class="guard-small" x="275" y="196" text-anchor="middle">KONTROLÜ</text>
+              <rect class="guard-scan" x="237" y="211" width="76" height="2"/>
+            </g>
+            <g class="record-zone" data-graphic-zone="record">
+              <rect class="graphic-hitbox" x="441" y="84" width="180" height="187"/>
+              <g class="record-piece secondary"><path d="M493 96H582L607 121V223H493Z"/></g>
+              <g class="record-piece secondary"><path d="M475 113H564L589 138V240H475Z"/></g>
+              <g class="record-piece"><path class="record-sheet" d="M457 130H546L571 155V257H457Z"/><path class="record-fold" d="M546 130V155H571"/>
+                <text class="record-title" x="475" y="179">KARAR</text><text class="record-title" x="475" y="196">KAYDI</text>
+                <path class="record-lines" d="M475 214H551M475 225H526"/><path class="record-mark" d="M538 234V243H549M538 234H549V243"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="graphic-controls" role="group" aria-label="Şematik adımları keşfet">
+          <button type="button" data-graphic-stage="proposal" aria-pressed="false" aria-describedby="opening-hint"><span>01 / ÖNERİ</span><small>Alım taslağı</small></button>
+          <button type="button" data-graphic-stage="guard" aria-pressed="false" aria-describedby="opening-hint"><span>02 / DENETİM</span><small>Yetki sınırı</small></button>
+          <button type="button" data-graphic-stage="record" aria-pressed="false" aria-describedby="opening-hint"><span>03 / KAYIT</span><small>Kararın izi</small></button>
+        </div>
+        <p class="graphic-accessible-hint" id="opening-hint">Öneri, sınır kontrolü ve karar kaydını incele.</p>
+        <div class="proposal-example" aria-label="Öğretici örnek: sınır dışındaki öneri değiştirilir, kullanıcı sınırları aynı kalır.">
+          <p class="example-heading">Öneri değişir. <span>Sınır değişmez.</span></p>
+          <div class="example-papers">
+            <article class="example-paper paper-first"><p class="paper-index">01 / İLK ÖNERİ</p><h3>Sınırın dışında.</h3><div class="paper-lines" aria-hidden="true"><i></i><i></i><i></i></div><p class="paper-result">Gönderilmez</p></article>
+            <article class="example-paper paper-revised"><p class="paper-index">02 / REVİZYON</p><h3>Aynı sınır,<br>yeni öneri.</h3><div class="paper-lines" aria-hidden="true"><i></i><i></i></div><p class="paper-result">Yeniden denetlenir</p></article>
+          </div>
+        </div>
+        <figcaption class="graphic-disclaimer" id="graphic-disclaimer">Şematik örnek · Canlı işlem değil.</figcaption>
+      </figure>
+    </div>
+    <section id="workspace" aria-labelledby="task-title" hidden>
+      <div class="task-heading"><div><p class="eyebrow">ONAYLI GÖREV</p><h1 id="task-title" tabindex="-1">AVAX alımı <span class="state" id="task-state" role="status" aria-live="polite"></span></h1><p id="task-summary"></p><p id="queue-status" class="meta"></p></div><button class="button stop" id="stop">Durdur ve iptal iste</button></div>
+      <p class="notice error" id="task-warning" role="alert" hidden></p>
+      <div class="task-grid">
+        <aside class="inspector" aria-label="Bütçe ve emir özeti"><h2>Bütçe durumu</h2><dl id="budget" class="budget-summary"></dl><p class="meta">Kalan bütçe, yeni emir izni değildir.</p><h2>Emir durumu</h2><p id="order-state">Kayıt bekleniyor.</p><details><summary>Emir ayrıntıları</summary><dl id="order-details"></dl></details><details><summary>Onaylı sınırlar</summary><p class="meta">Politika sabit · sonraki öneriler değiştiremez</p><dl id="limits"></dl></details><details><summary>Politika ve kayıt</summary><p class="record-scope"><strong>Bu görev · Yerel kayıt</strong><span id="task-chain-scope">Avalanche'a gönderilmedi.</span></p><p id="policy-hash" class="hash"></p><p id="audit-status"></p><p class="meta">Yerel hash doğrulaması borsa sonucunu veya zincir yayını tek başına kanıtlamaz.</p><button class="button" id="download-audit">Kayıt paketini indir</button></details></aside>
+        <section class="flow"><div class="flow-heading"><h2>Karar akışı</h2><span id="planner-label" class="meta"></span></div><ol id="events" class="events"></ol><div class="flow-actions"><button class="primary" id="advance" hidden>Eski görevi sıraya al →</button><button class="button" id="new-task" hidden>Yeni görev oluştur</button></div><details class="scenario" id="scenario" hidden><summary>Yerel fixture senaryoları</summary><p>Bu düğmeler yalnız yerel örneği ilerletir. Demo borsa sonucu üretmez.</p><div class="scenario-buttons"><button class="button" id="partial">Kısmi dolum göster</button><button class="button" id="unknown">Belirsiz sonuç göster</button><button class="button" id="confirm-cancel">Örnek iptali eşleştir</button></div></details></section>
+      </div>
+    </section>
+    <details class="integration-details"><summary>Teknik bağlantı durumu · borsa ve zincir</summary><section class="integrations" aria-label="Birbirinden bağımsız bağlantı durumları"><div><h3>OKX TR · salt okunur</h3><p id="atk-state">Doğrulanmadı</p></div><div><h3>Avalanche Fuji · arşiv kanıtı</h3><p id="fuji-state">Zincir yayını doğrulanmadı</p><button class="button" type="button" id="fuji-refresh" hidden>Fuji kanıtını yeniden doğrula</button></div></section></details>
+  </main>
+  <dialog id="approval" aria-labelledby="approval-title"><div class="dialog-heading"><h2 id="approval-title" tabindex="-1">Sınırları gözden geçir</h2><button class="icon-button" id="close-approval" aria-label="Taslak penceresini kapat">×</button></div>
+    <p id="approval-scope"></p><p id="draft-status" role="status"></p>
+    <div class="dialog-actions extraction-actions"><button class="primary" id="extract-draft" aria-describedby="draft-status">2/2 · Metinden alanları çıkar · 1 çağrı</button><button class="button" id="refresh-draft">Taslağı yeniden oku</button></div>
+    <details id="draft-editor"><summary>Alanları ve eksik koşulları düzenle</summary><form id="draft-edit-form"><div class="field-grid" id="edit-fields"></div><fieldset id="unsupported-fields"><legend>Yalnız vazgeçtiğin koşulları kaldırmak için işaretle</legend><div id="unsupported-list"></div></fieldset><button class="button" id="save-draft">Aynı taslağı güncelle</button></form></details>
+    <details id="source-text"><summary>Orijinal görev metni</summary><p id="original-text"></p></details>
+    <dl id="approval-limits"></dl><p id="approval-expiry" class="meta"></p><details><summary>Tam politika ve teknik ayrıntılar</summary><p class="meta" id="draft-usage"></p><p id="approval-hash" class="hash"></p><pre id="approval-document" class="hash"></pre></details>
+    <label class="ack"><input type="checkbox" id="ack">Tam politikayı, ücret üst sınırlarını ve tek emir denemesini onaylıyorum. Onayım görevi sıraya alır; ayrı bir çalıştır düğmesi yoktur.</label>
+    <button class="primary" id="approve" disabled>Onayla ve sıraya al</button><p id="approval-error" class="error" role="alert"></p>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

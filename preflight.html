@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><title>Pactway Preflight · İşlem öncesi kontrol</title>
+  <link rel="stylesheet" href="/preflight.css"><script type="module" src="/preflight.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Çalışma alanına geç</a>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Pactway Preflight ana sayfa"><span class="mark" aria-hidden="true">P</span><span class="brand-name"><span>Pactway</span> Preflight</span></a>
+    <span class="scope">AVAX-USDT · spot nakit · limit alım</span>
+    <span class="connection" id="connection" role="status">Bağlantı kontrol ediliyor</span>
+  </header>
+
+  <main>
+    <section class="access" id="access" hidden aria-labelledby="access-title">
+      <p class="eyebrow">YEREL ÇALIŞMA ALANI</p>
+      <h1 class="letter-motion" id="access-title" aria-label="İşlem öncesi kontrol"><span class="motion-word" aria-hidden="true"><span>İ</span><span>ş</span><span>l</span><span>e</span><span>m</span></span> <span class="motion-word" aria-hidden="true"><span>ö</span><span>n</span><span>c</span><span>e</span><span>s</span><span>i</span></span> <span class="motion-word" aria-hidden="true"><span>k</span><span>o</span><span>n</span><span>t</span><span>r</span><span>o</span><span>l</span></span></h1>
+      <p>Tek bir AVAX-USDT limit alımını onaylı sınırlar ve salt-okunur piyasa verisiyle kontrol et. Bu araç emir göndermez ve gizli bilgi istemez.</p>
+      <button class="primary" type="button" id="join">Çalışma alanını aç</button>
+      <p class="error" id="access-error" role="alert"></p>
+    </section>
+
+    <section class="startup-error" id="boot-error" role="alert" hidden aria-labelledby="boot-error-title">
+      <div><strong id="boot-error-title">Çalışma alanı açılamadı</strong><p>Yerel hizmete ulaşılamadı. Bağlantıyı kontrol edip yeniden dene.</p></div>
+      <button class="button" id="retry-startup" type="button">Yeniden dene</button>
+    </section>
+
+    <section class="readiness" id="readiness" aria-labelledby="readiness-title" hidden>
+      <div class="product-intro">
+        <h1 class="letter-motion" id="readiness-title" aria-label="İşlem öncesi kontrol"><span class="motion-word" aria-hidden="true"><span>İ</span><span>ş</span><span>l</span><span>e</span><span>m</span></span> <span class="motion-word" aria-hidden="true"><span>ö</span><span>n</span><span>c</span><span>e</span><span>s</span><span>i</span></span> <span class="motion-word" aria-hidden="true"><span>k</span><span>o</span><span>n</span><span>t</span><span>r</span><span>o</span><span>l</span></span></h1>
+        <p>AVAX-USDT · limit alım · emir yetkisi kapalı</p>
+      </div>
+      <details id="connection-details">
+        <summary><span id="readiness-note">Canlı hazır olma durumu doğrulanıyor.</span></summary>
+        <dl aria-label="Hazır olma durumu">
+          <div><dt>Piyasa bağlantısı</dt><dd id="atk-state">Kontrol ediliyor</dd></div>
+          <div><dt>Yerel planlayıcı</dt><dd id="planner-state">Kontrol ediliyor</dd></div>
+          <div><dt>Rapor</dt><dd>Yalnız yerel kayıt</dd></div>
+          <div><dt>Emir yetkisi</dt><dd class="safe">Kapalı</dd></div>
+        </dl>
+        <button class="text-command" id="refresh-status" type="button">Durumu yenile</button>
+      </details>
+    </section>
+
+    <section class="global-error" id="global-error" role="alert" hidden><strong>İstek tamamlanamadı.</strong><span id="global-error-copy"></span><button class="text-command" id="dismiss-error" type="button">Kapat</button></section>
+
+    <nav class="view-controls" id="view-controls" hidden aria-label="Kontrol görünümü">
+      <button type="button" id="view-live" aria-pressed="true">Canlı kontrol</button>
+      <button type="button" id="view-examples" aria-pressed="false">Kayıtlı örnekler</button>
+      <button type="button" id="view-history" aria-pressed="false">Geçmiş</button>
+    </nav>
+
+    <nav class="workflow-nav" id="workflow-nav" hidden aria-label="Canlı kontrol adımları">
+      <button type="button" id="step-policy" data-step="policy" aria-current="step"><span>01</span> Politika</button>
+      <button type="button" id="step-candidate" data-step="candidate"><span>02</span> Öneri</button>
+      <button type="button" id="step-result" data-step="result"><span>03</span> Sonuç</button>
+    </nav>
+
+    <section class="workflow-summary" id="workflow-summary" hidden aria-label="Onaylı politika özeti">
+      <p id="workflow-policy-summary"></p><p id="workflow-expiry" role="status"></p>
+    </section>
+
+    <section class="replays" id="replays" hidden aria-labelledby="replay-title">
+      <div class="replay-intro"><p class="eyebrow">ÖRNEK MODU</p><h2 id="replay-title">Üç kayıtlı sonucu incele</h2><p>Bu örnekler canlı piyasa bağlantısını veya yerel planlayıcıyı kullanmaz. Canlı politikanı değiştirmez.</p></div>
+      <div class="replay-list">
+        <button type="button" id="replay-within" data-example="within-limits"><strong>Sınırlar içinde</strong><span>Örnek sonuç · ALLOW</span></button>
+        <button type="button" id="replay-breach" data-example="limit-breach"><strong>Limit ihlali</strong><span>Örnek sonuç · BLOCK</span></button>
+        <button type="button" id="replay-stale" data-example="stale-evidence"><strong>Eski veri</strong><span>Örnek sonuç · INSUFFICIENT_DATA</span></button>
+      </div>
+    </section>
+
+    <div class="workspace" id="workspace" tabindex="-1" hidden>
+      <section class="tool-step policy-step" id="live-policy-step" aria-labelledby="policy-title">
+        <header class="step-heading"><span aria-hidden="true">01</span><div><p class="eyebrow">SINIRLAR</p><h2 id="policy-title">Politikayı belirle</h2></div></header>
+        <div class="fixed-scope" aria-label="Sabit işlem kapsamı"><span>AVAX-USDT</span><span>Alım</span><span>Spot nakit</span><span>Limit</span></div>
+        <form id="policy-form" novalidate>
+          <label for="max-notional">En yüksek emir bedeli <span id="max-notional-help">USDT · ücret hariç</span></label>
+          <input id="max-notional" name="maxNotional" inputmode="decimal" autocomplete="off" placeholder="100" required aria-describedby="max-notional-help max-notional-error">
+          <p class="field-error" id="max-notional-error" role="alert" hidden></p>
+          <label for="max-price">En yüksek birim fiyat <span id="max-price-help">USDT / AVAX</span></label>
+          <input id="max-price" name="maxPrice" inputmode="decimal" autocomplete="off" placeholder="25" required aria-describedby="max-price-help max-price-error">
+          <p class="field-error" id="max-price-error" role="alert" hidden></p>
+          <label for="duration-seconds">Politika süresi <span id="duration-seconds-help">60–3600 tam saniye</span></label>
+          <input id="duration-seconds" name="durationSeconds" inputmode="numeric" autocomplete="off" placeholder="600" required aria-describedby="duration-seconds-help duration-seconds-error">
+          <p class="field-error" id="duration-seconds-error" role="alert" hidden></p>
+          <button class="primary" id="create-policy" type="submit">Özeti incele</button>
+        </form>
+        <section class="policy-review" id="policy-review" hidden aria-labelledby="review-title">
+          <div class="section-line"><h3 id="review-title">Onay özeti</h3><span class="status-label" id="policy-status">Taslak</span></div>
+          <p class="policy-expiry" id="policy-expiry" role="status"></p>
+          <p class="policy-compact" id="policy-compact" hidden></p>
+          <dl id="policy-summary"></dl>
+          <details id="policy-details"><summary>Politika hash</summary><p class="hash"><span>Politika hash</span><code id="policy-hash"></code></p></details>
+          <div id="policy-ack-group"><label class="ack" for="policy-ack"><input type="checkbox" id="policy-ack"><span>Bu kapsamı ve ücretin emir bedeli sınırına dahil olmadığını okudum. Süre taslak oluşturulduğunda başlar; onaydan sonra politika değişmez.</span></label></div>
+          <div class="actions"><button class="primary" type="button" id="approve-policy">Politikayı onayla</button><button class="button" type="button" id="replace-policy">Yeni politika oluştur</button></div>
+        </section>
+        <section class="uncertain policy-uncertain" id="policy-uncertain" hidden><strong>Politika oluşturma sonucu doğrulanamadı.</strong><p>Yeni taslak oluşturmadan önce bu oturumun kayıtlarını kontrol et.</p><div class="actions"><button class="button" type="button" id="reconcile-policy">Kayıtlarda ara</button><button class="button" type="button" id="abandon-policy" hidden>Sonucu bırak ve yeni taslağa geç</button></div></section>
+        <section class="uncertain approval-uncertain" id="approval-uncertain" hidden><strong>Onay sonucu doğrulanamadı.</strong><p>Yeni bir onay göndermeden önce aynı politikanın durumunu kontrol et.</p><button class="button" type="button" id="retry-approval">Onay durumunu kontrol et</button></section>
+        <p class="inline-status" id="policy-message" role="status"></p>
+      </section>
+
+      <section class="tool-step candidate-step" id="live-candidate-step" aria-labelledby="candidate-title" hidden>
+        <header class="step-heading"><span aria-hidden="true">02</span><div><p class="eyebrow">ÖNERİ</p><h2 id="candidate-title" tabindex="-1">Limit alımı gir</h2></div></header>
+        <form id="candidate-form" novalidate>
+          <fieldset class="check-mode" id="check-mode-group">
+            <legend>Kontrol yöntemi</legend>
+            <label class="mode-option" for="mode-agent"><input type="radio" id="mode-agent" name="checkMode" value="agent" checked><span>Ajan incelemesi</span></label>
+            <label class="mode-option" for="mode-direct"><input type="radio" id="mode-direct" name="checkMode" value="direct"><span>Doğrudan kontrol</span></label>
+            <p class="mode-status" id="agent-mode-status" role="status"></p>
+          </fieldset>
+          <label for="candidate-price">Limit fiyatı <span id="candidate-price-help">USDT / AVAX · önerilen üst hedef</span></label>
+          <input id="candidate-price" name="price" inputmode="decimal" autocomplete="off" placeholder="24.80" required aria-describedby="candidate-price-help candidate-price-error">
+          <p class="field-error" id="candidate-price-error" role="alert" hidden></p>
+          <label for="candidate-size">Miktar <span id="candidate-size-help">AVAX · önerilen üst hedef</span></label>
+          <input id="candidate-size" name="size" inputmode="decimal" autocomplete="off" placeholder="4" required aria-describedby="candidate-size-help candidate-size-error">
+          <p class="field-error" id="candidate-size-error" role="alert" hidden></p>
+          <div class="candidate-total" id="candidate-total" aria-live="polite"><div><span>Emir bedeli</span><strong id="candidate-notional">— USDT</strong></div><div><span>Sınıra kalan</span><strong id="candidate-margin">—</strong></div></div>
+          <p class="scope-note">AVAX-USDT · alım · spot nakit · limit</p>
+          <button class="primary" id="run-check" type="submit" disabled> Ajanla incele </button>
+        </form>
+      </section>
+
+      <section class="tool-step result-step" id="result-step" aria-labelledby="result-title" hidden>
+        <header class="step-heading"><span aria-hidden="true">03</span><div><p class="eyebrow">SONUÇ</p><h2 id="result-title" tabindex="-1">İşlem öncesi rapor</h2></div></header>
+        <button class="text-command edit-candidate" id="edit-candidate" type="button" hidden>Öneriyi düzenle</button>
+        <section class="pending" id="pending" hidden aria-live="polite" aria-busy="true"><span class="pulse" aria-hidden="true"></span><div><strong id="pending-title">Kontrol hazırlanıyor</strong><p id="pending-copy">Sonuç bekleniyor.</p></div></section>
+        <section class="uncertain" id="uncertain" hidden><strong>İsteğin sonucu doğrulanamadı.</strong><p>Yeni kontrol oluşturma. Aynı istek kimliği ve aynı gövdeyle yalnız sonucunu kontrol et.</p><button class="button" type="button" id="retry-pending">Aynı isteğin sonucunu kontrol et</button></section>
+        <section class="uncertain poll-recovery" id="poll-recovery" hidden><strong>Kontrol hâlâ sonuçlanmadı.</strong><p>Yeni kontrol başlatmadan mevcut kaydı yeniden sorgula.</p><button class="button" type="button" id="retry-poll">Sonucu yeniden kontrol et</button></section>
+        <section class="result-empty" id="result-empty"><p>Henüz görüntülenecek rapor yok.</p></section>
+        <article class="report" id="report" hidden aria-labelledby="result-title">
+          <p class="report-stale" id="report-stale" role="status" hidden>Önceki sonuç · güncel girdiler ve geçerlilik süresi için yeni kontrol gerekir.</p>
+          <section class="report-context-band"><strong id="report-context" hidden>Kayıtlı örnek · Bu sonuç canlı formdaki politika ve öneriyi kullanmaz.</strong><button class="button" id="return-live" type="button" hidden>Canlı kontrole dön</button></section>
+          <div class="verdict" id="verdict" role="status" aria-live="polite"><span id="verdict-code"></span><p id="verdict-meaning"></p></div>
+          <div class="report-meta"><span id="report-mode"></span><time id="checked-at"></time></div>
+          <section class="report-inputs"><h3>Kontrol edilen değerler</h3><dl id="report-inputs"></dl></section>
+          <section class="report-reasons"><h3>Sonuç gerekçesi</h3><ul class="reason-list" id="reason-list"></ul></section>
+          <section class="agent-decision" id="agent-decision" hidden aria-label="Ajan kararı"><div><span>Ajan eylemi</span><strong id="agent-action"></strong></div><p id="agent-decision-reason"></p><div class="agent-candidate-diff" id="agent-candidate-diff" hidden><dl id="agent-candidate-original"></dl><dl id="agent-candidate-final"></dl></div><ol class="agent-attempts" id="agent-attempts"></ol></section>
+          <p class="safety-note"><strong>Karar desteği:</strong> Sonuç emir göndermez; yatırım tavsiyesi veya gerçekleşme garantisi değildir.</p>
+          <button class="button" id="download-report" type="button">JSON raporunu indir</button>
+          <details id="report-technical">
+            <summary>Teknik rapor ayrıntıları</summary>
+            <details id="report-checks-details"><summary>Kontrol listesi</summary><ol class="check-list" id="check-list"></ol></details>
+            <details class="technical-details"><summary>Kanıt ve hash bağları</summary><dl id="evidence-summary"></dl><p class="hash"><span>Politika hash</span><code id="report-policy-hash"></code></p><p class="hash"><span>Öneri hash</span><code id="candidate-hash"></code></p><p class="hash"><span>Rapor hash</span><code id="report-hash"></code></p><ol class="trace-list" id="agent-trace"></ol></details>
+            <details><summary>Kapsam dışında kalanlar</summary><ul id="not-checked"></ul></details>
+            <details class="full-disclosure"><summary>Tam rapor açıklaması</summary><p class="disclosure" id="disclosure"></p></details>
+          </details>
+        </article>
+      </section>
+    </div>
+
+    <section class="history" id="history-section" hidden aria-labelledby="history-title"><div class="section-line"><div><p class="eyebrow">BU OTURUM</p><h2 id="history-title">Politikalar ve kontroller</h2></div><button class="text-command" id="refresh-history" type="button">Kayıtları yenile</button></div><p id="history-empty" hidden>Bu oturumda henüz kayıt yok.</p><div class="history-list" id="history-list"></div></section>
+    <footer><p><strong>Karar desteği.</strong> Emir göndermez; ALLOW yatırım tavsiyesi veya gerçekleşme garantisi değildir. Raporlar yalnız yerel kayıttır.</p></footer>
+  </main>
+</body>
+</html>

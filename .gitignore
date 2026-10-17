@@ -1,0 +1,46 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.local/
+*.db
+*.db-shm
+*.db-wal
+.vercel/
+public-demo-dist/
+.codex-presentation-build/
+
+# Generated delivery artifacts and local QA evidence are not source releases.
+exports/
+tmp/
+previews/
+frontend-preview.jpg
+index.html
+JURI-KARARLARI.md
+MANDATEGUARD-PLAN.md
+
+# Public documentation is an explicit allowlist; internal journals and raw QA
+# evidence stay local.
+docs/*
+!docs/PREFLIGHT-API.md
+!docs/PREFLIGHT-KAPSAM.md
+!docs/PREFLIGHT-KULLANIM.md
+!docs/URUN-ADI.md
+!docs/SUNUM-KONUSMA-NOTLARI.md
+!docs/assets/
+docs/assets/*
+!docs/assets/preflight-agent-revision.png
+!docs/assets/preflight-agent-wait.png
+!docs/sunum/
+docs/sunum/*
+!docs/sunum/Pactway-Preflight-Juri.pptx
+
+# Local runtime capture, journals, and private operator material.
+*.log
+*.journal
+*.session
+*.evidence.json
+*.key
+*.pem
+
+.vercel
