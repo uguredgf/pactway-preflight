@@ -112,6 +112,16 @@ Bu, Vercel üzerinde çalışan bir SaaS veya sürekli açık public backend de�
 
 **Stable giriş:** [pactway-preflight-demo.vercel.app](https://pactway-preflight-demo.vercel.app/). Canlı oturumun geçici HTTPS origin'i başlatıcı terminalinde gösterilir; stable root bu güncel origin'e yönlendirilir. Bu nedenle başlatıcı veya bilgisayar yeniden başlarsa origin ve davet kodu değişebilir ve Vercel redirect hedefinin yeni origin'e güncellenmesi gerekir. Bu hackathon paylaşımı 24/7 çalışma veya production SLA taahhüt etmez.
 
+### Jüri için erişim yönergesi
+
+1. [Stable giriş](https://pactway-preflight-demo.vercel.app/) bağlantısını açın. Bağlantı, operatörün o anda açık tuttuğu bilgisayardaki canlı uygulamaya yönlenir.
+2. Sunum ekibinden güncel davet kodunu özel kanaldan alın. Kod repoda, URL'de veya sayfa kaynaklarında bulunmaz ve yalnızca ilgili terminal oturumu açıkken geçerlidir.
+3. Sayfadaki **Davet kodu** alanına kodu yazıp **Davetle aç** düğmesine basın. Kod çalışmıyorsa yeni kod istemek yerine API anahtarı, cüzdan parolası veya kurtarma kelimesi girmeyin.
+4. Oturum açıldıktan sonra politika sınırlarını ve tek AVAX-USDT adayını girin. Uygulama OKX TR'den salt-okunur piyasa kanıtı alır, yerel modeli yalnız yorumlayıcı olarak kullanır ve emir göndermez.
+5. Sonuç ekranındaki `ALLOW`, `BLOCK` veya `INSUFFICIENT_DATA` kararını ve taşınabilir raporu inceleyin. `ALLOW` emir onayı, yatırım tavsiyesi veya gerçekleşme garantisi değildir.
+
+Ziyaretçinin Remix, cüzdan, OKX hesabı veya API anahtarı bağlaması gerekmez. Ekranda `Davet kodu gerekli`, `401` veya bağlantı hatası görülürse operatörün terminali, bilgisayarı, Ollama modeli ve internet bağlantısı kontrol edilmelidir; kullanıcıdan gizli anahtar istenmemelidir.
+
 **Kaynak kodu:** [github.com/uguredgf/pactway-preflight](https://github.com/uguredgf/pactway-preflight)
 
 ## Sonuçların anlamı
